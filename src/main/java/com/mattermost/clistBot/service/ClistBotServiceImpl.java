@@ -38,6 +38,9 @@ public class ClistBotServiceImpl implements ClistBotService {
     @Value("${channel_id}")
     private String channelId;
 
+    @Value("${mattermost_uri}")
+    private String mattermostUri;
+
     @Override
     @Scheduled(fixedDelay = 1000*86400,initialDelay = 0)
     /*  After  60 SEC this method will execute
@@ -45,47 +48,64 @@ public class ClistBotServiceImpl implements ClistBotService {
      *  with initial Delay of 60 sec
      * */
     public void sendDailyChallenges() throws IOException {
+        JSONObject challengesJSON = getChallengesJSON();
+        List<Challenge> challengeList = getChallenges(challengesJSON);
+        SendPost sendPost = getSendPost(challengeList);
+        sendPost(sendPost);
+    }
+
+    private JSONObject getChallengesJSON() throws IOException {
         LocalDate now= LocalDate.now(ZoneId.of("Asia/Kolkata"));
         log.info("{}",now);
         CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpGet httpGet = new HttpGet("https://clist.by/api/v1/contest/?limit=100&offset=0&order_by=-start&start__gt="+now+"T00:00:00&start__lt="+now+"T23:59:59");
+        HttpGet httpGet = new HttpGet("https://clist.by/api/v1/contest/?limit=20&offset=0&order_by=-start&start__gt="+now+"T00:00:00&start__lt="+now+"T23:59:59");
         httpGet.setHeader("Authorization",clistToken);
         HttpResponse httpResponse = httpClient.execute(httpGet);
-        log.info("{}",httpResponse.getEntity());
         HttpEntity httpEntity = httpResponse.getEntity();
-        String retSrc = EntityUtils.toString(httpEntity);
-        JSONObject result = new JSONObject(retSrc);
-        log.info("{}",result.getJSONArray("objects"));
+        String responseString = EntityUtils.toString(httpEntity);
+        JSONObject responseJson = new JSONObject(responseString);
+        log.info("{}",responseJson.getJSONArray("objects"));
+        return responseJson;
+    }
+
+    private List<Challenge> getChallenges(JSONObject challengesJSON){
         List<Challenge> challengeList = new ArrayList<>();
-        for(int i=0;i<result.getJSONArray("objects").length();i++){
+        for(int i=0;i<challengesJSON.getJSONArray("objects").length();i++){
             Challenge challenge = new Challenge();
-            challenge.setDuration(result.getJSONArray("objects").getJSONObject(i).getLong("duration"));
-            challenge.setStart(result.getJSONArray("objects").getJSONObject(i).getString("start"));
-            challenge.setEnd(result.getJSONArray("objects").getJSONObject(i).getString("end"));
-            challenge.setHref(result.getJSONArray("objects").getJSONObject(i).getString("href"));
-            challenge.setId(result.getJSONArray("objects").getJSONObject(i).getLong("id"));
-            challenge.setEvent(result.getJSONArray("objects").getJSONObject(i).getString("event"));
-            log.info("{}",challenge.getEnd());
+            challenge.setDuration(challengesJSON.getJSONArray("objects").getJSONObject(i).getLong("duration"));
+            challenge.setStart(challengesJSON.getJSONArray("objects").getJSONObject(i).getString("start"));
+            challenge.setEnd(challengesJSON.getJSONArray("objects").getJSONObject(i).getString("end"));
+            challenge.setHref(challengesJSON.getJSONArray("objects").getJSONObject(i).getString("href"));
+            challenge.setId(challengesJSON.getJSONArray("objects").getJSONObject(i).getLong("id"));
+            challenge.setEvent(challengesJSON.getJSONArray("objects").getJSONObject(i).getString("event"));
             challengeList.add(challenge);
         }
+        return challengeList;
+    }
 
+    private SendPost getSendPost(List<Challenge> challengeList){
         SendPost sendPost = new SendPost();
         for (Challenge challenge : challengeList) {
             Attachment attachment = new Attachment();
             attachment.setTitle(challenge.getEvent());
             attachment.setTitle_link(challenge.getHref());
-            attachment.setFooter("Start : " + challenge.getStart().format(DateTimeFormatter.ofPattern("dd-MM HH:mm")) + " " + "End : " + challenge.getEnd().format(DateTimeFormatter.ofPattern("dd-MM HH:mm")));
+            attachment.setText("Start : " + challenge.getStart().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")) + " \t\t\t" + "End : " + challenge.getEnd().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")));
             sendPost.getProps().getAttachments().add(attachment);
         }
         sendPost.setChannel_id(channelId);
-        log.info("{}",sendPost.getProps().getAttachments().get(0).getFooter());
-        HttpPost httpPost = new HttpPost("http://localhost:8065/api/v4/posts");
+        return sendPost;
+    }
+
+    private void sendPost(SendPost sendPost) throws IOException {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(mattermostUri+"/api/v4/posts");
         httpPost.addHeader("Authorization",botToken);
         Gson gson = new Gson();
         StringEntity postingString = new StringEntity(gson.toJson(sendPost));
-        httpPost.setEntity(postingString);
         log.info("{}",gson.toJson(sendPost));
+        httpPost.setEntity(postingString);
         httpPost.setHeader("Content-type", "application/json");
-        httpClient.execute(httpPost);
+        HttpResponse httpResponse = httpClient.execute(httpPost);
+        log.info("{}",httpResponse.getStatusLine());
     }
 }

@@ -15,6 +15,6 @@ public class Attachment {
 
     private String title;
     private String title_link;
-    private String footer;
+    private String text;
 
 }

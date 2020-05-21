@@ -28,7 +28,6 @@ public class Challenge {
     private LocalDateTime end;
     private String event;
     private String href;
-    private Resource resource;
 
     public void setStart(String start){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
