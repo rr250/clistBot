@@ -42,8 +42,8 @@ public class ClistBotServiceImpl implements ClistBotService {
     private String mattermostUri;
 
     @Override
-    @Scheduled(fixedDelay = 1000*86400,initialDelay = 0)
-    /*  After  0 SEC this method will execute
+    @Scheduled(fixedDelay = 1000*86400,initialDelay = 1000*60)
+    /*  After  60 SEC this method will execute
      *  86400 SEC or 24HR will delay will by end time of method execution
      * */
     public void sendDailyChallenges() throws IOException {
@@ -92,6 +92,8 @@ public class ClistBotServiceImpl implements ClistBotService {
             sendPost.getProps().getAttachments().add(attachment);
         }
         sendPost.setChannel_id(channelId);
+        if(challengeList.size() == 0)
+            sendPost.setMessage("No challenges starting today");
         return sendPost;
     }
 
