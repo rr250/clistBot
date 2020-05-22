@@ -43,9 +43,8 @@ public class ClistBotServiceImpl implements ClistBotService {
 
     @Override
     @Scheduled(fixedDelay = 1000*86400,initialDelay = 0)
-    /*  After  60 SEC this method will execute
-     *  60 SEC will delay will by end time of method execution
-     *  with initial Delay of 60 sec
+    /*  After  0 SEC this method will execute
+     *  86400 SEC or 24HR will delay will by end time of method execution
      * */
     public void sendDailyChallenges() throws IOException {
         JSONObject challengesJSON = getChallengesJSON();
