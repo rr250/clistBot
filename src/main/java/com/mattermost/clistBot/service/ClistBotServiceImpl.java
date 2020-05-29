@@ -77,7 +77,9 @@ public class ClistBotServiceImpl implements ClistBotService {
             challenge.setHref(challengesJSON.getJSONArray("objects").getJSONObject(i).getString("href"));
             challenge.setId(challengesJSON.getJSONArray("objects").getJSONObject(i).getLong("id"));
             challenge.setEvent(challengesJSON.getJSONArray("objects").getJSONObject(i).getString("event"));
+            challenge.setResource(challengesJSON.getJSONArray("objects").getJSONObject(i).getJSONObject("resource").getString("name"));
             challengeList.add(challenge);
+            log.info("{}",challenge.getResource());
         }
         return challengeList;
     }
@@ -88,7 +90,9 @@ public class ClistBotServiceImpl implements ClistBotService {
             Attachment attachment = new Attachment();
             attachment.setTitle(challenge.getEvent());
             attachment.setTitle_link(challenge.getHref());
-            attachment.setText("Start : " + challenge.getStart().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")) + " \t\t\t" + "End : " + challenge.getEnd().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")));
+            attachment.setAuthor_name(challenge.getResource());
+            attachment.setAuthor_link(challenge.getResource());
+            attachment.setText("Start : " + challenge.getStart().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")) + " \n" + "End : " + challenge.getEnd().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")));
             sendPost.getProps().getAttachments().add(attachment);
         }
         sendPost.setChannel_id(channelId);

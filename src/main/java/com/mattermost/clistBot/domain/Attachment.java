@@ -16,5 +16,7 @@ public class Attachment {
     private String title;
     private String title_link;
     private String text;
+    private String author_name;
+    private String author_link;
 
 }

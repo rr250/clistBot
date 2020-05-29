@@ -28,16 +28,17 @@ public class Challenge {
     private LocalDateTime end;
     private String event;
     private String href;
+    private String resource;
 
     public void setStart(String start){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
                 .withZone(ZoneId.of("UTC"));
-        this.start=LocalDateTime.parse(start, formatter);
+        this.start=LocalDateTime.parse(start, formatter).plusMinutes(330);
     }
 
     public void setEnd(String end){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
                 .withZone(ZoneId.of("UTC"));
-        this.end=LocalDateTime.parse(end, formatter);
+        this.end=LocalDateTime.parse(end, formatter).plusMinutes(330);
     }
 }
