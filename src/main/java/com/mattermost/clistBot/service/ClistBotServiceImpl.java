@@ -94,6 +94,7 @@ public class ClistBotServiceImpl implements ClistBotService {
             attachment.setAuthor_link(challenge.getResource());
             attachment.setText("Start : " + challenge.getStart().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")) + " \n" + "End : " + challenge.getEnd().format(DateTimeFormatter.ofPattern("MMMM dd   HH:mm' hrs'")));
             sendPost.getProps().getAttachments().add(attachment);
+            log.info("{}",attachment.getTitle());
         }
         sendPost.setChannel_id(channelId);
         if(challengeList.size() == 0)
@@ -106,7 +107,7 @@ public class ClistBotServiceImpl implements ClistBotService {
         HttpPost httpPost = new HttpPost(mattermostUri+"/api/v4/posts");
         httpPost.addHeader("Authorization",botToken);
         Gson gson = new Gson();
-        StringEntity postingString = new StringEntity(gson.toJson(sendPost));
+        StringEntity postingString = new StringEntity(gson.toJson(sendPost),"UTF8");
         log.info("{}",gson.toJson(sendPost));
         httpPost.setEntity(postingString);
         httpPost.setHeader("Content-type", "application/json");
