@@ -42,10 +42,17 @@ public class ClistBotServiceImpl implements ClistBotService {
     private String mattermostUri;
 
     @Override
-    @Scheduled(fixedDelay = 1000*86400,initialDelay = 1000*60)
-    /*  After  60 SEC this method will execute
-     *  86400 SEC or 24HR will delay will by end time of method execution
-     * */
+    @Scheduled(fixedDelay = 1000*60,initialDelay = 1000*60)
+    public  void callCloud() throws IOException {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet("https://clistbot.el.r.appspot.com/");
+        httpClient.execute(httpGet);
+    }
+
+
+    @Override
+    @Scheduled(cron="0 0 0 * * *",zone = "Asia/Kolkata")
+
     public void sendDailyChallenges() throws IOException {
         JSONObject challengesJSON = getChallengesJSON();
         List<Challenge> challengeList = getChallenges(challengesJSON);
