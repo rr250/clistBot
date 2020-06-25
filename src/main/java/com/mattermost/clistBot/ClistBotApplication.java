@@ -26,6 +26,6 @@ public class ClistBotApplication {
 
 	@GetMapping("/")
 	public String hello() {
-		return "hello world!";
+		return "ClistBot is running";
 	}
 }

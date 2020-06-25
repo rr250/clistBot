@@ -52,7 +52,7 @@ public class ClistBotServiceImpl implements ClistBotService {
 
     @Override
     @Scheduled(cron="0 0 0 * * *",zone = "Asia/Kolkata")
-
+//    @Scheduled(fixedDelay = 1000*86400,initialDelay = 1000*60)
     public void sendDailyChallenges() throws IOException {
         JSONObject challengesJSON = getChallengesJSON();
         List<Challenge> challengeList = getChallenges(challengesJSON);

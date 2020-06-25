@@ -111,7 +111,7 @@
 				<version>2.2.0</version>
 				<configuration>
 					<projectId>clistbot</projectId>
-					<version>1.0.1</version>
+					<version>clistbot1</version>
 				</configuration>
 			</plugin>
 		</plugins>
