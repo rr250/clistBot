@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,9 +15,10 @@ import java.util.List;
 @Setter
 @Getter
 @Slf4j
-public class SendPost {
-    private String channel_id;
-    private String command;
-    private String message;
-    private Attachments props = new Attachments();
+public class Matterpoll {
+    private String id;
+    private LocalDateTime createdAt;
+    private String creator;
+    private String question;
+    private List<AnswerOption> answerOptions= new ArrayList<>();
 }

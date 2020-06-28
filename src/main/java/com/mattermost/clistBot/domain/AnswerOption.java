@@ -14,9 +14,7 @@ import java.util.List;
 @Setter
 @Getter
 @Slf4j
-public class SendPost {
-    private String channel_id;
-    private String command;
-    private String message;
-    private Attachments props = new Attachments();
+public class AnswerOption {
+    private String answer;
+    private List<String> voters = new ArrayList<>();
 }

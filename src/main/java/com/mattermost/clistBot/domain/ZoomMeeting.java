@@ -6,17 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Slf4j
-public class SendPost {
-    private String channel_id;
-    private String command;
-    private String message;
-    private Attachments props = new Attachments();
+public class ZoomMeeting {
+    private String id;
+    private String startLink;
+    private String joinLink;
 }
+
