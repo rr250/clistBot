@@ -7,5 +7,5 @@ public interface ClistBotService {
 //    void callCloud() throws IOException;
     void sendDailyChallenges() throws IOException;
     void sendEndChallengeNotification() throws IOException;
-    void sendWeekendClasses() throws IOException, SQLException;
+//    void sendWeekendClasses() throws IOException, SQLException;
 }

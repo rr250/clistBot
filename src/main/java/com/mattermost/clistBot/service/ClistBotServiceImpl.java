@@ -2,7 +2,7 @@ package com.mattermost.clistBot.service;
 
 import com.google.gson.Gson;
 import com.mattermost.clistBot.domain.*;
-import com.mattermost.clistBot.domain.infrastructure.PluginKeyValueStoreRepository;
+//import com.mattermost.clistBot.domain.infrastructure.PluginKeyValueStoreRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import sun.misc.IOUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -43,8 +42,8 @@ public class ClistBotServiceImpl implements ClistBotService {
     @Value("${bot_token}")
     private String botToken;
 
-    @Value("${zoom_access_token}")
-    private String zoomAccessToken;
+//    @Value("${zoom_access_token}")
+//    private String zoomAccessToken;
 
     @Value("${bot_id}")
     private String botId;
@@ -55,8 +54,8 @@ public class ClistBotServiceImpl implements ClistBotService {
     @Value("${mattermost_uri}")
     private String mattermostUri;
 
-    @Autowired
-    private PluginKeyValueStoreRepository pluginKeyValueStoreRepository;
+//    @Autowired
+//    private PluginKeyValueStoreRepository pluginKeyValueStoreRepository;
 
 //    @Override
 //    @Scheduled(fixedDelay = 1000*60,initialDelay = 1000*60)
@@ -77,8 +76,8 @@ public class ClistBotServiceImpl implements ClistBotService {
         sendPost(sendPost);
     }
 
-    @Override
-//    @Scheduled(fixedDelay = 1000*60,initialDelay = 1000*60)
+//    @Override
+//    @Scheduled(fixedDelay = 1000*60,initialDelay = 1000*0)
     public  void sendEndChallengeNotification() throws IOException {
         JSONObject challengesJSON = getEndChallengesJSON();
 //        JSONObject challengesJSON = getChallengesJSON();
@@ -87,73 +86,81 @@ public class ClistBotServiceImpl implements ClistBotService {
             if(challenge.getResource().equals("codeforces.com")||
                     challenge.getResource().equals("codechef.com")||
                     challenge.getResource().equals("hackerearth.com")||
-                    challenge.getResource().equals("atcoder.jp")) {
+                    challenge.getResource().equals("atcoder.jp") ||
+                    challenge.getResource().equals("leetcode.com")) {
                 SendPost sendPost = getEndChallengeSendPost(challenge);
                 executeCommand(sendPost);
             }
         }
     }
 
-    @Override
-//    @Scheduled(cron="0 0 0 * * FRI",zone = "Asia/Kolkata")
-    @Scheduled(fixedDelay = 1000*86400,initialDelay = 1000*0)
-    public void sendWeekendClasses() throws IOException, SQLException {
-        List<Matterpoll> matterpollList = getMatterpollsThisWeek();
-        for (Matterpoll matterpoll : matterpollList) {
-            log.info("{}", matterpoll.getCreator());
-            List<String> userIdList = getUserIdList(matterpoll);
-            assert userIdList != null;
-            if(userIdList.size()==0){
-                continue;
-            }
-            userIdList=userIdList.size()>2?userIdList.subList(0,2):userIdList;
-            List<User> userList = getUserList(userIdList);
-            List<String> channelIds = getChannelIds(userIdList);
-            ZoomMeeting zoomMeeting = getZoomMeeting(matterpoll.getQuestion().split("\\*").length>1?matterpoll.getQuestion().split("\\*")[1]:"");
-        }
-    }
+//    @Override
+////    @Scheduled(cron="0 0 0 * * FRI",zone = "Asia/Kolkata")
+////    @Scheduled(fixedDelay = 1000*86400,initialDelay = 1000*0)
+//    public void sendWeekendClasses() throws IOException, SQLException {
+//        List<Matterpoll> matterpollList = getMatterpollsThisWeek();
+//        for (Matterpoll matterpoll : matterpollList) {
+//            log.info("{}", matterpoll.getCreator());
+//            List<String> userIdList = getUserIdList(matterpoll);
+//            assert userIdList != null;
+//            if(userIdList.size()==0){
+//                continue;
+//            }
+//            userIdList=userIdList.size()>2?userIdList.subList(0,2):userIdList;
+//            List<User> userList = getUserList(userIdList);
+//            List<String> channelIds = getChannelIds(userIdList);
+//            ZoomMeeting zoomMeeting = getZoomMeeting(matterpoll.getQuestion().split("\\*").length>1?matterpoll.getQuestion().split("\\*")[1]:"");
+//        }
+//    }
 
-    private List<Matterpoll> getMatterpollsThisWeek() throws SQLException, IOException {
-        LocalDateTime now= LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
-        log.info("{}",now);
-        List<PluginKeyValueStore> pluginKeyValueStoreList = pluginKeyValueStoreRepository.findAll();
-        log.info("{}",pluginKeyValueStoreList);
-        List<Matterpoll> matterpollList=new ArrayList<>();
-        for (PluginKeyValueStore pluginKeyValueStore : pluginKeyValueStoreList) {
-            if (pluginKeyValueStore.getPKey().substring(0, 4).equals("poll")) {
-                byte[] bytes = new byte[9000];
-                int read = pluginKeyValueStore.getPValue().getBinaryStream().read(bytes);
-                String pValue = new String(bytes);
-                JSONObject jsonObject = new JSONObject(pValue);
-                long createdAtUnix = jsonObject.getLong("CreatedAt");
-                LocalDateTime createdAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(createdAtUnix), ZoneId.of("Asia/Kolkata"));
-                log.info("{}", createdAt);
-                if (createdAt.isAfter(ChronoLocalDateTime.from(now.minusDays(7)))) {
-                    Matterpoll matterpoll = new Matterpoll();
-                    matterpoll.setId(jsonObject.getString("ID"));
-                    matterpoll.setCreatedAt(createdAt);
-                    matterpoll.setCreator(jsonObject.getString("Creator"));
-                    matterpoll.setQuestion(jsonObject.getString("Question"));
-                    List<AnswerOption> answerOptions = new ArrayList<>();
-                    JSONArray jsonArray = jsonObject.getJSONArray("AnswerOptions");
-                    for (int j = 0; j < jsonArray.length(); j++) {
-                        AnswerOption answerOption = new AnswerOption();
-                        answerOption.setAnswer(jsonArray.getJSONObject(j).getString("Answer"));
-                        JSONArray jsonArray1 = !jsonArray.getJSONObject(j).get("Voter").equals(null) ? jsonArray.getJSONObject(j).getJSONArray("Voter") : new JSONArray();
-                        List<String> voters = new ArrayList<>();
-                        for (int k = 0; k < jsonArray1.length(); k++) {
-                            voters.add(jsonArray1.getString(k));
-                        }
-                        answerOption.setVoters(voters);
-                        answerOptions.add(answerOption);
-                    }
-                    matterpoll.setAnswerOptions(answerOptions);
-                    matterpollList.add(matterpoll);
-                }
-            }
-        }
-        return matterpollList;
-    }
+//    @Override
+////    @Scheduled(cron="0 0 0 * * FRI",zone = "Asia/Kolkata")
+//    @Scheduled(fixedDelay = 1000*86400,initialDelay = 1000*0)
+//    public void sendZoomRecorded(){
+//
+//    }
+
+//    private List<Matterpoll> getMatterpollsThisWeek() throws SQLException, IOException {
+//        LocalDateTime now= LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+//        log.info("{}",now);
+//        List<PluginKeyValueStore> pluginKeyValueStoreList = pluginKeyValueStoreRepository.findAll();
+//        log.info("{}",pluginKeyValueStoreList);
+//        List<Matterpoll> matterpollList=new ArrayList<>();
+//        for (PluginKeyValueStore pluginKeyValueStore : pluginKeyValueStoreList) {
+//            if (pluginKeyValueStore.getPKey().substring(0, 4).equals("poll")) {
+//                byte[] bytes = new byte[9000];
+//                int read = pluginKeyValueStore.getPValue().getBinaryStream().read(bytes);
+//                String pValue = new String(bytes);
+//                JSONObject jsonObject = new JSONObject(pValue);
+//                long createdAtUnix = jsonObject.getLong("CreatedAt");
+//                LocalDateTime createdAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(createdAtUnix), ZoneId.of("Asia/Kolkata"));
+//                log.info("{}", createdAt);
+//                if (createdAt.isAfter(ChronoLocalDateTime.from(now.minusDays(7)))) {
+//                    Matterpoll matterpoll = new Matterpoll();
+//                    matterpoll.setId(jsonObject.getString("ID"));
+//                    matterpoll.setCreatedAt(createdAt);
+//                    matterpoll.setCreator(jsonObject.getString("Creator"));
+//                    matterpoll.setQuestion(jsonObject.getString("Question"));
+//                    List<AnswerOption> answerOptions = new ArrayList<>();
+//                    JSONArray jsonArray = jsonObject.getJSONArray("AnswerOptions");
+//                    for (int j = 0; j < jsonArray.length(); j++) {
+//                        AnswerOption answerOption = new AnswerOption();
+//                        answerOption.setAnswer(jsonArray.getJSONObject(j).getString("Answer"));
+//                        JSONArray jsonArray1 = !jsonArray.getJSONObject(j).get("Voter").equals(null) ? jsonArray.getJSONObject(j).getJSONArray("Voter") : new JSONArray();
+//                        List<String> voters = new ArrayList<>();
+//                        for (int k = 0; k < jsonArray1.length(); k++) {
+//                            voters.add(jsonArray1.getString(k));
+//                        }
+//                        answerOption.setVoters(voters);
+//                        answerOptions.add(answerOption);
+//                    }
+//                    matterpoll.setAnswerOptions(answerOptions);
+//                    matterpollList.add(matterpoll);
+//                }
+//            }
+//        }
+//        return matterpollList;
+//    }
 
     private List<String> getUserIdList(Matterpoll matterpoll) {
         List<AnswerOption> answerOptions = matterpoll.getAnswerOptions();
@@ -221,7 +228,7 @@ public class ClistBotServiceImpl implements ClistBotService {
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("https://api.zoom.us/v2/users/rrrishabh7@gmail.com/meetings");
-        httpPost.addHeader("Authorization", zoomAccessToken);
+//        httpPost.addHeader("Authorization", zoomAccessToken);
         StringEntity postingString = new StringEntity(jsonObject.toString(), "UTF8");
         httpPost.setEntity(postingString);
         httpPost.setHeader("Content-type", "application/json");
@@ -277,23 +284,27 @@ public class ClistBotServiceImpl implements ClistBotService {
             sendPost.getProps().getAttachments().add(attachment);
             log.info("{}",attachment.getTitle());
         }
-        sendPost.setChannel_id(channelId);
+//        sendPost.setChannel_id(channelId);
         if(challengeList.size() == 0)
             sendPost.setMessage("No challenges starting today");
         return sendPost;
     }
 
     private void sendPost(SendPost sendPost) throws IOException {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpPost httpPost = new HttpPost(mattermostUri+"/api/v4/posts");
-        httpPost.addHeader("Authorization",botToken);
-        Gson gson = new Gson();
-        StringEntity postingString = new StringEntity(gson.toJson(sendPost),"UTF8");
-        log.info("{}",gson.toJson(sendPost));
-        httpPost.setEntity(postingString);
-        httpPost.setHeader("Content-type", "application/json");
-        HttpResponse httpResponse = httpClient.execute(httpPost);
-        log.info("{}",httpResponse.getStatusLine());
+        String[] channelIdList = channelId.split(",");
+        for (String channelId1 : channelIdList) {
+            sendPost.setChannel_id(channelId1);
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost(mattermostUri + "/api/v4/posts");
+            httpPost.addHeader("Authorization", botToken);
+            Gson gson = new Gson();
+            StringEntity postingString = new StringEntity(gson.toJson(sendPost), "UTF8");
+            log.info("{}", gson.toJson(sendPost));
+            httpPost.setEntity(postingString);
+            httpPost.setHeader("Content-type", "application/json");
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            log.info("{}", httpResponse.getStatusLine());
+        }
     }
 
     private JSONObject getEndChallengesJSON() throws IOException {
